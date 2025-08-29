@@ -7,7 +7,7 @@ class Account(Base):
 
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True, nullable=False)
-    password = Column(String, nullable=False)  # ⚠️ in real apps use hashing!
+    password = Column(String, nullable=False)  # simple string for demo
 
     def __repr__(self):
         return f"<Account(id={self.id}, username='{self.username}')>"
@@ -19,7 +19,6 @@ class Customer(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
 
-    # One customer can have many bookings
     bookings = relationship("Booking", back_populates="customer", cascade="all, delete-orphan")
 
     def __repr__(self):

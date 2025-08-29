@@ -1,12 +1,30 @@
 from twende_travels.db.database import get_session
 from twende_travels.models.models import Customer, Booking, Account
 
-# -----------------------------
-# Authentication
-# -----------------------------
+# Global variable to track logged-in user
+current_user = None
+
+def auth_menu():
+    while True:
+        print("\n--- Authentication ---")
+        print("1. Register")
+        print("2. Login")
+        print("3. Exit")
+
+        choice = input("\nEnter choice: ")
+
+        if choice == "1":
+            register()
+        elif choice == "2":
+            if login():
+                main_menu()  # enter main system only if login success
+        elif choice == "3":
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice. Try again.")
 
 def register():
-    print("\n--- Register ---")
     username = input("Enter username: ")
     password = input("Enter password: ")
 
@@ -14,35 +32,70 @@ def register():
     existing = session.query(Account).filter_by(username=username).first()
 
     if existing:
-        print("Username already exists. Try another one.")
+        print("⚠️ Username already exists, try again.")
     else:
         new_account = Account(username=username, password=password)
         session.add(new_account)
         session.commit()
-        print("Account created successfully! You can now log in.")
-
+        print(f"✔️ Account created for {username}!")
     session.close()
-    input("\nPress Enter to continue...")
 
 def login():
-    print("\n--- Login ---")
-    username = input("Username: ")
-    password = input("Password: ")
+    global current_user
+    username = input("Enter username: ")
+    password = input("Enter password: ")
 
     session = get_session()
     account = session.query(Account).filter_by(username=username, password=password).first()
     session.close()
 
     if account:
-        print(f"Welcome back, {account.username}!")
+        current_user = account
+        print(f"✔️ Welcome back, {username}!")
         return True
     else:
-        print("Invalid username or password.")
+        print("❌ Invalid username or password.")
         return False
 
-# -----------------------------
-# Customers & Bookings
-# -----------------------------
+def main_menu():
+    while True:
+        print("\n Welcome to Twende Travels!")
+
+        print("\n--- Customers ---")
+        print("1. Add Customer")
+        print("2. List Customers")
+        print("3. Update Customer")
+        print("4. Delete Customer")
+
+        print("\n--- Bookings ---")
+        print("5. Add Booking")
+        print("6. List Bookings")
+        print("7. Delete Booking")
+
+        print("\n--- Exit ---")
+        print("8. Logout")
+
+        choice = input("\nEnter choice: ")
+
+        if choice == "1":
+            add_customer()
+        elif choice == "2":
+            list_customers()
+        elif choice == "3":
+            update_customer()
+        elif choice == "4":
+            delete_customer()
+        elif choice == "5":
+            add_booking()
+        elif choice == "6":
+            list_bookings()
+        elif choice == "7":
+            delete_booking()
+        elif choice == "8":
+            print("Logging out...")
+            break
+        else:
+            print("Invalid choice, try again.")
 
 def add_customer():
     name = input("Enter customer name: ")
@@ -64,8 +117,14 @@ def list_customers():
 
     if customers:
         print(f"\nCustomer List ({len(customers)} total):")
+        # Example list usage
+        names = [c.name for c in customers]
+        print("Customer names (list):", names)
+
         for c in customers:
-            print(f" - {c.id}: {c.name} ({c.email})")
+            # Example dict usage
+            customer_dict = {"id": c.id, "name": c.name, "email": c.email}
+            print(customer_dict)
     else:
         print("\nNo customers found.")
     input("\nPress Enter to return to menu...")
@@ -142,33 +201,13 @@ def add_booking():
     new_booking = Booking(destination=destination, date=date, customer=customer)
     session.add(new_booking)
     session.commit()
+
+    # Example dict
+    booking_dict = {"id": new_booking.id, "destination": new_booking.destination, "date": new_booking.date, "customer_id": new_booking.customer_id}
+    print("Booking as dict:", booking_dict)
+
+    session.close()
     print(f"Booking to '{destination}' on {date} created for {customer.name}!")
-
-    session.close()
-    input("\nPress Enter to return to menu...")
-
-def add_customer_with_booking():
-    print("\n--- Add Customer with Booking ---")
-    name = input("Enter customer name: ")
-    email = input("Enter customer email: ")
-    destination = input("Enter booking destination: ")
-    date = input("Enter booking date (YYYY-MM-DD): ")
-
-    session = get_session()
-
-    # Create customer
-    new_customer = Customer(name=name, email=email)
-    session.add(new_customer)
-    session.flush()  # ensure new_customer.id is ready
-
-    # Create booking
-    new_booking = Booking(destination=destination, date=date, customer=new_customer)
-    session.add(new_booking)
-    session.commit()
-
-    print(f"✔️ Customer '{new_customer.name}' and booking to '{destination}' added successfully!")
-
-    session.close()
     input("\nPress Enter to return to menu...")
 
 def list_bookings():
@@ -177,11 +216,15 @@ def list_bookings():
     session.close()
 
     if bookings:
-        print(f"\nBooking List ({len(bookings)} total):")
+        print(f"\n Booking List ({len(bookings)} total):")
+        # Example tuple usage
+        booking_tuples = [(b.id, b.customer.name, b.destination, b.date) for b in bookings]
+        print("Booking tuples:", booking_tuples)
+
         for b in bookings:
             print(f" - {b.id}: {b.customer.name} booked {b.destination} on {b.date}")
     else:
-        print("\nNo bookings found.")
+        print("\n No bookings found.")
     input("\nPress Enter to return to menu...")
 
 def delete_booking():
@@ -204,65 +247,3 @@ def delete_booking():
 
     session.close()
     input("\nPress Enter to return to menu...")
-
-# -----------------------------
-# Main Menu
-# -----------------------------
-
-def main_menu():
-    logged_in = False
-    while not logged_in:
-        print("\n--- Twende Travels ---")
-        print("1. Register")
-        print("2. Login")
-        print("3. Exit")
-
-        choice = input("Enter choice: ")
-        if choice == "1":
-            register()
-        elif choice == "2":
-            logged_in = login()
-        elif choice == "3":
-            print("Goodbye!")
-            return
-        else:
-            print("Invalid choice. Try again.")
-
-    while True:
-        print("\n--- Main Menu ---")
-        print("1. Add Customer")
-        print("2. List Customers")
-        print("3. Update Customer")
-        print("4. Delete Customer")
-        print("5. Add Booking")
-        print("6. List Bookings")
-        print("7. Delete Booking")
-        print("8. Add Customer with Booking")
-        print("9. Logout")
-        print("10. Exit")
-
-        choice = input("\nEnter choice: ")
-        if choice == "1":
-            add_customer()
-        elif choice == "2":
-            list_customers()
-        elif choice == "3":
-            update_customer()
-        elif choice == "4":
-            delete_customer()
-        elif choice == "5":
-            add_booking()
-        elif choice == "6":
-            list_bookings()
-        elif choice == "7":
-            delete_booking()
-        elif choice == "8":
-            add_customer_with_booking()
-        elif choice == "9":
-            print("Logging out...")
-            return main_menu()
-        elif choice == "10":
-            print("Goodbye! Thanks for using Twende Travels.")
-            break
-        else:
-            print("Invalid choice, try again.")
