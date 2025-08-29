@@ -18,8 +18,11 @@ def main_menu():
         print("6. List Bookings")
         print("7. Delete Booking")
 
+        print("\n--- Combined ---")
+        print("8. Add Customer with Booking")
+
         print("\n--- Exit ---")
-        print("8. Exit")
+        print("9. Exit")
 
         choice = input("\nEnter choice: ")
 
@@ -38,10 +41,15 @@ def main_menu():
         elif choice == "7":
             delete_booking()
         elif choice == "8":
+            add_customer_with_booking()
+        elif choice == "9":
             print("Goodbye! Thanks for using Twende Travels.")
             break
         else:
             print("Invalid choice, try again.")
+
+
+# ---------------------- Customer Functions ----------------------
 
 def add_customer():
     name = input("Enter customer name: ")
@@ -56,6 +64,7 @@ def add_customer():
     print(f"Customer '{name}' added successfully!")
     input("\nPress Enter to return to menu...")
 
+
 def list_customers():
     session = get_session()
     customers = session.query(Customer).all()
@@ -68,6 +77,7 @@ def list_customers():
     else:
         print("\nNo customers found.")
     input("\nPress Enter to return to menu...")
+
 
 def update_customer():
     list_customers()
@@ -93,10 +103,11 @@ def update_customer():
         session.commit()
         print(f"Customer '{customer.id}' updated successfully!")
     else:
-        print(" No customer found with that ID.")
+        print("No customer found with that ID.")
 
     session.close()
     input("\nPress Enter to return to menu...")
+
 
 def delete_customer():
     list_customers()
@@ -119,16 +130,28 @@ def delete_customer():
     session.close()
     input("\nPress Enter to return to menu...")
 
+
+# ---------------------- Booking Functions ----------------------
+
 def add_booking():
     list_customers()
     try:
-        customer_id = int(input("\nEnter the ID of the customer making the booking: "))
+        customer_id = int(input("\nEnter the ID of the customer making the booking (or 0 to add new): "))
     except ValueError:
         print("Invalid ID. Please enter a number.")
         return
 
     session = get_session()
-    customer = session.query(Customer).get(customer_id)
+
+    # If user enters 0, create a new customer first
+    if customer_id == 0:
+        name = input("Enter new customer name: ")
+        email = input("Enter new customer email: ")
+        customer = Customer(name=name, email=email)
+        session.add(customer)
+        session.flush()  # get the new customer ID
+    else:
+        customer = session.query(Customer).get(customer_id)
 
     if not customer:
         print("No customer found with that ID.")
@@ -141,10 +164,11 @@ def add_booking():
     new_booking = Booking(destination=destination, date=date, customer=customer)
     session.add(new_booking)
     session.commit()
-    session.close()
 
     print(f"Booking to '{destination}' on {date} created for {customer.name}!")
+    session.close()
     input("\nPress Enter to return to menu...")
+
 
 def list_bookings():
     session = get_session()
@@ -152,12 +176,13 @@ def list_bookings():
     session.close()
 
     if bookings:
-        print(f"\n Booking List ({len(bookings)} total):")
+        print(f"\nBooking List ({len(bookings)} total):")
         for b in bookings:
             print(f" - {b.id}: {b.customer.name} booked {b.destination} on {b.date}")
     else:
-        print("\n No bookings found.")
+        print("\nNo bookings found.")
     input("\nPress Enter to return to menu...")
+
 
 def delete_booking():
     list_bookings()
@@ -176,6 +201,33 @@ def delete_booking():
         print(f"Booking to '{booking.destination}' for {booking.customer.name} deleted successfully!")
     else:
         print("No booking found with that ID.")
+
+    session.close()
+    input("\nPress Enter to return to menu...")
+
+
+# ---------------------- Combined Function ----------------------
+
+def add_customer_with_booking():
+    print("\n--- Add Customer with Booking ---")
+    name = input("Enter customer name: ")
+    email = input("Enter customer email: ")
+    destination = input("Enter booking destination: ")
+    date = input("Enter booking date (YYYY-MM-DD): ")
+
+    session = get_session()
+
+    # Create new customer
+    new_customer = Customer(name=name, email=email)
+    session.add(new_customer)
+    session.flush()  # ensures ID is available
+
+    # Create booking linked to this customer
+    new_booking = Booking(destination=destination, date=date, customer=new_customer)
+    session.add(new_booking)
+    session.commit()
+
+    print(f"✔️ Customer '{new_customer.name}' and booking to '{destination}' added successfully!")
 
     session.close()
     input("\nPress Enter to return to menu...")
