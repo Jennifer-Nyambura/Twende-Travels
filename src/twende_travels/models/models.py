@@ -1,8 +1,16 @@
-# src/twende_travels/models/models.py
-
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from twende_travels.db.database import Base
+
+class Account(Base):
+    __tablename__ = "accounts"
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)  # ⚠️ in real apps use hashing!
+
+    def __repr__(self):
+        return f"<Account(id={self.id}, username='{self.username}')>"
 
 class Customer(Base):
     __tablename__ = "customers"

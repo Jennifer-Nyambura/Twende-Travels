@@ -1,55 +1,48 @@
-# src/twende_travels/cli/cli.py
-
 from twende_travels.db.database import get_session
-from twende_travels.models.models import Customer, Booking
+from twende_travels.models.models import Customer, Booking, Account
 
-def main_menu():
-    while True:
-        print("\n Welcome to Twende Travels!")
+# -----------------------------
+# Authentication
+# -----------------------------
 
-        print("\n--- Customers ---")
-        print("1. Add Customer")
-        print("2. List Customers")
-        print("3. Update Customer")
-        print("4. Delete Customer")
+def register():
+    print("\n--- Register ---")
+    username = input("Enter username: ")
+    password = input("Enter password: ")
 
-        print("\n--- Bookings ---")
-        print("5. Add Booking")
-        print("6. List Bookings")
-        print("7. Delete Booking")
+    session = get_session()
+    existing = session.query(Account).filter_by(username=username).first()
 
-        print("\n--- Combined ---")
-        print("8. Add Customer with Booking")
+    if existing:
+        print("Username already exists. Try another one.")
+    else:
+        new_account = Account(username=username, password=password)
+        session.add(new_account)
+        session.commit()
+        print("Account created successfully! You can now log in.")
 
-        print("\n--- Exit ---")
-        print("9. Exit")
+    session.close()
+    input("\nPress Enter to continue...")
 
-        choice = input("\nEnter choice: ")
+def login():
+    print("\n--- Login ---")
+    username = input("Username: ")
+    password = input("Password: ")
 
-        if choice == "1":
-            add_customer()
-        elif choice == "2":
-            list_customers()
-        elif choice == "3":
-            update_customer()
-        elif choice == "4":
-            delete_customer()
-        elif choice == "5":
-            add_booking()
-        elif choice == "6":
-            list_bookings()
-        elif choice == "7":
-            delete_booking()
-        elif choice == "8":
-            add_customer_with_booking()
-        elif choice == "9":
-            print("Goodbye! Thanks for using Twende Travels.")
-            break
-        else:
-            print("Invalid choice, try again.")
+    session = get_session()
+    account = session.query(Account).filter_by(username=username, password=password).first()
+    session.close()
 
+    if account:
+        print(f"Welcome back, {account.username}!")
+        return True
+    else:
+        print("Invalid username or password.")
+        return False
 
-# ---------------------- Customer Functions ----------------------
+# -----------------------------
+# Customers & Bookings
+# -----------------------------
 
 def add_customer():
     name = input("Enter customer name: ")
@@ -64,7 +57,6 @@ def add_customer():
     print(f"Customer '{name}' added successfully!")
     input("\nPress Enter to return to menu...")
 
-
 def list_customers():
     session = get_session()
     customers = session.query(Customer).all()
@@ -77,7 +69,6 @@ def list_customers():
     else:
         print("\nNo customers found.")
     input("\nPress Enter to return to menu...")
-
 
 def update_customer():
     list_customers()
@@ -103,11 +94,10 @@ def update_customer():
         session.commit()
         print(f"Customer '{customer.id}' updated successfully!")
     else:
-        print("No customer found with that ID.")
+        print(" No customer found with that ID.")
 
     session.close()
     input("\nPress Enter to return to menu...")
-
 
 def delete_customer():
     list_customers()
@@ -130,28 +120,16 @@ def delete_customer():
     session.close()
     input("\nPress Enter to return to menu...")
 
-
-# ---------------------- Booking Functions ----------------------
-
 def add_booking():
     list_customers()
     try:
-        customer_id = int(input("\nEnter the ID of the customer making the booking (or 0 to add new): "))
+        customer_id = int(input("\nEnter the ID of the customer making the booking: "))
     except ValueError:
         print("Invalid ID. Please enter a number.")
         return
 
     session = get_session()
-
-    # If user enters 0, create a new customer first
-    if customer_id == 0:
-        name = input("Enter new customer name: ")
-        email = input("Enter new customer email: ")
-        customer = Customer(name=name, email=email)
-        session.add(customer)
-        session.flush()  # get the new customer ID
-    else:
-        customer = session.query(Customer).get(customer_id)
+    customer = session.query(Customer).get(customer_id)
 
     if not customer:
         print("No customer found with that ID.")
@@ -164,11 +142,34 @@ def add_booking():
     new_booking = Booking(destination=destination, date=date, customer=customer)
     session.add(new_booking)
     session.commit()
-
     print(f"Booking to '{destination}' on {date} created for {customer.name}!")
+
     session.close()
     input("\nPress Enter to return to menu...")
 
+def add_customer_with_booking():
+    print("\n--- Add Customer with Booking ---")
+    name = input("Enter customer name: ")
+    email = input("Enter customer email: ")
+    destination = input("Enter booking destination: ")
+    date = input("Enter booking date (YYYY-MM-DD): ")
+
+    session = get_session()
+
+    # Create customer
+    new_customer = Customer(name=name, email=email)
+    session.add(new_customer)
+    session.flush()  # ensure new_customer.id is ready
+
+    # Create booking
+    new_booking = Booking(destination=destination, date=date, customer=new_customer)
+    session.add(new_booking)
+    session.commit()
+
+    print(f"✔️ Customer '{new_customer.name}' and booking to '{destination}' added successfully!")
+
+    session.close()
+    input("\nPress Enter to return to menu...")
 
 def list_bookings():
     session = get_session()
@@ -182,7 +183,6 @@ def list_bookings():
     else:
         print("\nNo bookings found.")
     input("\nPress Enter to return to menu...")
-
 
 def delete_booking():
     list_bookings()
@@ -205,29 +205,64 @@ def delete_booking():
     session.close()
     input("\nPress Enter to return to menu...")
 
+# -----------------------------
+# Main Menu
+# -----------------------------
 
-# ---------------------- Combined Function ----------------------
+def main_menu():
+    logged_in = False
+    while not logged_in:
+        print("\n--- Twende Travels ---")
+        print("1. Register")
+        print("2. Login")
+        print("3. Exit")
 
-def add_customer_with_booking():
-    print("\n--- Add Customer with Booking ---")
-    name = input("Enter customer name: ")
-    email = input("Enter customer email: ")
-    destination = input("Enter booking destination: ")
-    date = input("Enter booking date (YYYY-MM-DD): ")
+        choice = input("Enter choice: ")
+        if choice == "1":
+            register()
+        elif choice == "2":
+            logged_in = login()
+        elif choice == "3":
+            print("Goodbye!")
+            return
+        else:
+            print("Invalid choice. Try again.")
 
-    session = get_session()
+    while True:
+        print("\n--- Main Menu ---")
+        print("1. Add Customer")
+        print("2. List Customers")
+        print("3. Update Customer")
+        print("4. Delete Customer")
+        print("5. Add Booking")
+        print("6. List Bookings")
+        print("7. Delete Booking")
+        print("8. Add Customer with Booking")
+        print("9. Logout")
+        print("10. Exit")
 
-    # Create new customer
-    new_customer = Customer(name=name, email=email)
-    session.add(new_customer)
-    session.flush()  # ensures ID is available
-
-    # Create booking linked to this customer
-    new_booking = Booking(destination=destination, date=date, customer=new_customer)
-    session.add(new_booking)
-    session.commit()
-
-    print(f"✔️ Customer '{new_customer.name}' and booking to '{destination}' added successfully!")
-
-    session.close()
-    input("\nPress Enter to return to menu...")
+        choice = input("\nEnter choice: ")
+        if choice == "1":
+            add_customer()
+        elif choice == "2":
+            list_customers()
+        elif choice == "3":
+            update_customer()
+        elif choice == "4":
+            delete_customer()
+        elif choice == "5":
+            add_booking()
+        elif choice == "6":
+            list_bookings()
+        elif choice == "7":
+            delete_booking()
+        elif choice == "8":
+            add_customer_with_booking()
+        elif choice == "9":
+            print("Logging out...")
+            return main_menu()
+        elif choice == "10":
+            print("Goodbye! Thanks for using Twende Travels.")
+            break
+        else:
+            print("Invalid choice, try again.")
