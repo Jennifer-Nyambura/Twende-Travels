@@ -1,107 +1,76 @@
-#Twende Travels
+# Twende Travels CLI
 
-Twende Travels is a simple **travel booking CLI application** built with **Python, SQLAlchemy, and SQLite**.  
-It allows users to manage **customers** and their **bookings** directly from the command line.  
+Twende Travels is a **Python command-line application** for managing a travel agency's customers and bookings. It provides a **user-friendly CLI interface** with authentication, customer management, and booking management. Data is displayed neatly in **tables** using the `tabulate` library.
 
-This project demonstrates:  
-- Python project structuring (with `src/` and modules)  
-- Using **SQLAlchemy ORM** to model and manage a database  
-- Implementing CRUD (Create, Read, Update, Delete) functionality  
-- Building a clean **command-line interface (CLI)**  
+This project is ideal for beginners learning **Python**, **SQLAlchemy**, and **building interactive CLI applications**.
 
 ---
 
-## Project Structure
+## Features
 
-Twende-Travels/
-│
-├── src/twende_travels/
-│ ├── cli/ # CLI code
-│ │ └── cli.py
-│ │
-│ ├── db/ # Database setup & connection
-│ │ └── database.py
-│ │
-│ ├── models/ # ORM models (Customer, Booking)
-│ │ └── models.py
-│ │
-│ ├── init.py
-│
-├── src/app.py # Entry point of the application
-├── Pipfile # Pipenv dependencies
-├── Pipfile.lock
-├── requirements.txt # Exported dependencies
-├── README.md # Project documentation
-└── .gitignore # Git ignore rules
+### Authentication
+- Register a new account
+- Login with existing credentials
+- Menu-based navigation
 
-yaml
-Copy code
+### Customer Management
+- Add Customer: Enter name and email
+- List Customers: Display all customers in a table
+- Update Customer: Edit customer details
+- Delete Customer: Remove customers
+
+### Booking Management
+- Add Booking: Link a booking to a customer by ID
+- List Bookings: Display bookings in a table including customer name
+- Delete Booking: Remove a booking by ID
+
+### Interactive CLI
+- Clear, numbered menus
+- Automatic table display after each operation
+- Immediate feedback on success or errors
 
 ---
 
-## Setup & Installation
+## Installation
 
-1. **Clone the repository**:
-   ```sh
-   git clone <your-repo-link>
-   cd Twende-Travels
-Install dependencies with Pipenv:
+1. **Clone the repository:**
 
-sh
+```bash
+git clone https://github.com/YOUR_USERNAME/Twende-Travels.git
+cd Twende-Travels
+Install dependencies
+
+Using pipenv:
+
+bash
 Copy code
 pipenv install
-Run the app:
+pipenv shell
+Or using pip:
 
-sh
+bash
+Copy code
+pip install sqlalchemy tabulate
+Run the application:
+
+bash
 Copy code
 pipenv run python src/app.py
-Features
-Customers
-Add a new customer (name + email)
-
-List all customers
-
-Update customer details
-
-Delete a customer
-
-Bookings
-Add a booking (destination + date for a customer)
-
-List all bookings
-
-Delete a booking
-
- Other
-Database setup happens automatically on startup
-
-Organized menu system with clear sections
-
-Proper error handling for invalid inputs
-
-Database Design
-Twende Travels uses SQLite for storage.
-The database contains two tables:
-
-customers
-id	name	email
-1	Mary Jane	mary@example.com
-2	John Doe	john@example.com
-
-bookings
-id	destination	date	customer_id
-1	Nairobi	2025-09-01	1
-2	Mombasa	2025-09-05	2
-
- customer_id links each booking to a customer (relationship: one customer → many bookings).
-
-Usage Example
+Usage
+Authentication Menu
 markdown
 Copy code
- Setting up the database...
- Database is ready!
+--- Authentication ---
+1. Register
+2. Login
+0. Exit
+Enter choice:
+Register a new account or login with an existing account.
 
-Welcome to Twende Travels!
+Main Menu
+markdown
+Copy code
+✨ Welcome to Twende Travels ✨
 
 --- Customers ---
 1. Add Customer
@@ -115,24 +84,145 @@ Welcome to Twende Travels!
 7. Delete Booking
 
 --- Exit ---
-8. Exit
-Example run:
+0. Exit
+Quick Start Example
+Run the application:
+
+bash
+Copy code
+pipenv run python src/app.py
+Register a new account:
 
 yaml
 Copy code
 Enter choice: 1
-Enter customer name: Mary Jane
-Enter customer email: mary@example.com
- Customer 'Mary Jane' added successfully!
- Requirements
-Python 3.8+
+Choose a username: Alice
+Choose a password: password123
+✅ Account created for 'Alice'
+Login with the account:
 
-Pipenv (for environment + dependencies)
+yaml
+Copy code
+Enter choice: 2
+Username: Alice
+Password: password123
+✅ Welcome back, Alice!
+Add a customer:
+
+sql
+Copy code
+Enter choice: 1
+Enter customer name: Bob
+Enter customer email: bob@email.com
+✅ Customer added successfully!
+
+📋 Customers Table:
++----+------+------------------+
+| ID | Name | Email            |
++----+------+------------------+
+| 1  | Bob  | bob@email.com    |
++----+------+------------------+
+Add a booking:
+
+sql
+Copy code
+Enter choice: 5
+Enter destination: Mombasa
+Enter date (YYYY-MM-DD): 2025-09-10
+Enter customer ID for booking: 1
+✅ Booking added successfully!
+
+🗺️ Bookings Table:
++----+------------+------------+----------+
+| ID | Destination| Date       | Customer |
++----+------------+------------+----------+
+| 1  | Mombasa    | 2025-09-10 | Bob      |
++----+------------+------------+----------+
+List all bookings:
+
+sql
+Copy code
+Enter choice: 6
+
+🗺️ Bookings Table:
++----+------------+------------+----------+
+| ID | Destination| Date       | Customer |
++----+------------+------------+----------+
+| 1  | Mombasa    | 2025-09-10 | Bob      |
++----+------------+------------+----------+
+Exit the application:
+
+yaml
+Copy code
+Enter choice: 0
+👋 Goodbye!
+💡 Tip: After every operation (add/update/delete), the app automatically prints the updated table for easy reference.
+
+Database
+Built with SQLAlchemy ORM
+
+Stores Customer and Booking models
+
+Each booking is linked to a customer (one-to-many relationship)
+
+Models:
+
+python
+Copy code
+class Customer(Base):
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    email = Column(String)
+
+class Booking(Base):
+    id = Column(Integer, primary_key=True)
+    destination = Column(String)
+    date = Column(String)
+    customer_id = Column(Integer, ForeignKey('customer.id'))
+    customer = relationship('Customer')
+Project Structure
+graphql
+Copy code
+Twende-Travels/
+│
+├── src/
+│   ├── app.py              # Entry point
+│   └── twende_travels/
+│       ├── cli/
+│       │   └── cli.py      # CLI menus and logic
+│       ├── db/
+│       │   └── database.py # Database connection
+│       └── models/
+│           └── models.py   # SQLAlchemy models
+│
+├── Pipfile / requirements.txt
+├── README.md
+└── .gitignore
+Dependencies
+Python 3.8+
 
 SQLAlchemy
 
-Dependencies are managed in Pipfile, but also exported to requirements.txt for flexibility.
+tabulate
 
-Author
-Jennifer Nyambura.
+Install dependencies:
 
+bash
+Copy code
+pip install -r requirements.txt
+Contributing
+Contributions are welcome! You can:
+
+Add new features
+
+Improve CLI usability
+
+Enhance table formatting
+
+Add unit tests
+
+License
+This project is licensed under the MIT License.
+
+yaml
+Copy code
