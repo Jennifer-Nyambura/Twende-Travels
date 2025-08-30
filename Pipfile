@@ -4,8 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+# Interactive Python shell (helpful for testing)
 ipython = "*"
+
+# Database ORM
 sqlalchemy = "*"
+
+# Pretty tables in CLI
+tabulate = "*"
 
 [dev-packages]
 

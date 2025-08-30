@@ -1,17 +1,11 @@
-# src/twende_travels/db/database.py
-
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Create SQLite database (it will generate a file named twende_travels.db)
-engine = create_engine("sqlite:///twende_travels.db")
+DATABASE_URL = "sqlite:///twende_travels.db"
 
-# Create a session factory
+engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(bind=engine)
-
-# Base class for models to inherit from
 Base = declarative_base()
 
-# Dependency function (we’ll use this later)
 def get_session():
     return SessionLocal()

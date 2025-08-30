@@ -2,16 +2,6 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from twende_travels.db.database import Base
 
-class Account(Base):
-    __tablename__ = "accounts"
-
-    id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True, nullable=False)
-    password = Column(String, nullable=False)  # simple string for demo
-
-    def __repr__(self):
-        return f"<Account(id={self.id}, username='{self.username}')>"
-
 class Customer(Base):
     __tablename__ = "customers"
 
@@ -19,6 +9,7 @@ class Customer(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
 
+    # One customer can have many bookings
     bookings = relationship("Booking", back_populates="customer", cascade="all, delete-orphan")
 
     def __repr__(self):
@@ -36,3 +27,13 @@ class Booking(Base):
 
     def __repr__(self):
         return f"<Booking(id={self.id}, destination='{self.destination}', date='{self.date}', customer_id={self.customer_id})>"
+
+class Account(Base):
+    __tablename__ = "accounts"
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)  # store plain text password
+
+    def __repr__(self):
+        return f"<Account(username='{self.username}')>"
